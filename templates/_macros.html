@@ -1,0 +1,39 @@
+{# Form field helpers with an icon, red/green feedback and an error message. #}
+
+{% macro input_field(f, icon, help='') %}
+<div class="mb-3">
+    {{ f.label(class="form-label") }}
+    <div class="input-group has-validation">
+        <span class="input-group-text"><i class="bi bi-{{ icon }}"></i></span>
+        {{ f(class="form-control" ~ (" is-invalid" if f.errors else ""), **kwargs) }}
+        <div class="invalid-feedback">{{ f.errors[0] if f.errors else "" }}</div>
+    </div>
+    {% if help %}<div class="form-text">{{ help }}</div>{% endif %}
+</div>
+{% endmacro %}
+
+{% macro password_field(f, icon="lock", help='') %}
+<div class="mb-3">
+    {{ f.label(class="form-label") }}
+    <div class="input-group has-validation">
+        <span class="input-group-text"><i class="bi bi-{{ icon }}"></i></span>
+        {{ f(class="form-control" ~ (" is-invalid" if f.errors else ""), **kwargs) }}
+        <button class="btn btn-outline-secondary toggle-password" type="button" aria-label="Show password" tabindex="-1">
+            <i class="bi bi-eye"></i>
+        </button>
+        <div class="invalid-feedback">{{ f.errors[0] if f.errors else "" }}</div>
+    </div>
+    {% if help %}<div class="form-text">{{ help }}</div>{% endif %}
+</div>
+{% endmacro %}
+
+{% macro select_field(f, icon) %}
+<div class="mb-3">
+    {{ f.label(class="form-label") }}
+    <div class="input-group has-validation">
+        <span class="input-group-text"><i class="bi bi-{{ icon }}"></i></span>
+        {{ f(class="form-select" ~ (" is-invalid" if f.errors else ""), **kwargs) }}
+        <div class="invalid-feedback">{{ f.errors[0] if f.errors else "" }}</div>
+    </div>
+</div>
+{% endmacro %}

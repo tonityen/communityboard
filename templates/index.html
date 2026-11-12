@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}CommunityBoard | Barangay Duhat{% endblock %}
+{% block content %}
+<section class="hero text-center mb-4">
+    <div class="hero-copy">
+        <img src="{{ url_for('static', filename='img/logo-white.png') }}" alt="CommunityBoard logo" width="76" height="76" class="mb-3">
+        <p class="hero-kicker mb-2">Barangay Duhat · Santa Cruz, Laguna</p>
+        <h1 class="display-5 mb-3">Your community, in the loop.</h1>
+        <p class="lead mb-4">One friendly place to catch barangay announcements, find upcoming events, and send a concern to the municipality.</p>
+        {% if session.get('user_id') %}
+            <a class="btn btn-cb-yellow btn-lg" href="{{ url_for('main.dashboard') }}">Open your dashboard</a>
+        {% else %}
+            <a class="btn btn-cb-yellow btn-lg me-sm-2 mb-2 mb-sm-0" href="{{ url_for('auth.register') }}">Join the community</a>
+            <a class="btn btn-outline-light btn-lg" href="{{ url_for('auth.login') }}">Log in</a>
+        {% endif %}
+    </div>
+</section>
+<div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-3">
+    <div><p class="text-uppercase small fw-semibold text-success mb-1">Made for local life</p><h2 class="h4 mb-0">Stay informed and take part</h2></div>
+</div>
+<div class="row g-3">
+    <div class="col-md-4"><article class="card feature-card shadow-sm"><div class="card-body p-4">
+        <span class="feature-icon mb-3"><i class="bi bi-megaphone" aria-hidden="true"></i></span>
+        <h3 class="h5">Barangay announcements</h3><p class="text-muted mb-0">Keep important notices and updates easy to find when you need them.</p>
+    </div></article></div>
+    <div class="col-md-4"><article class="card feature-card shadow-sm"><div class="card-body p-4">
+        <span class="feature-icon mb-3"><i class="bi bi-calendar-event" aria-hidden="true"></i></span>
+        <h3 class="h5">Community events</h3><p class="text-muted mb-0">See what is coming up, when it happens, and where to join in.</p>
+    </div></article></div>
+    <div class="col-md-4"><article class="card feature-card shadow-sm"><div class="card-body p-4">
+        <span class="feature-icon mb-3"><i class="bi bi-chat-square-text" aria-hidden="true"></i></span>
+        <h3 class="h5">Concern reports</h3><p class="text-muted mb-0">Send a concern to the municipality and follow its status from your account.</p>
+    </div></article></div>
+</div>
+{% endblock %}

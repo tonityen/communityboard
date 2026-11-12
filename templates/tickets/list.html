@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}Tickets - CommunityBoard{% endblock %}
+{% block content %}
+{% set badge = {'open': 'warning', 'in_progress': 'info', 'resolved': 'success'} %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3 page-heading-row">
+    <div>
+        <h1 class="h3 mb-1">{% if session.get('role') == 'admin' %}All tickets{% else %}My tickets{% endif %}</h1>
+        <p class="text-muted mb-0">{% if session.get('role') == 'admin' %}Review reports, update their status, or manage ticket details.{% else %}Track your concerns and update open tickets.{% endif %}</p>
+    </div>
+    <a href="{{ url_for('tickets.create_ticket') }}" class="btn btn-cb"><i class="bi bi-plus-lg me-1" aria-hidden="true"></i>Report a concern</a>
+</div>
+
+{% if tickets %}
+<div class="card shadow-sm">
+<div class="table-responsive">
+<table class="table align-middle mb-0">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Concern</th>
+            <th>Category</th>
+            {% if session.get('role') == 'admin' %}<th>Reported by</th>{% endif %}
+            <th>Date</th>
+            <th>Status</th>
+            {% if session.get('role') == 'admin' %}<th>Update status</th>{% endif %}
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for t in tickets %}
+        <tr>
+            <td>{{ t.id }}</td>
+            <td>
+                <strong>{{ t.subject }}</strong>
+                <div class="small text-muted" style="white-space: pre-line;">{{ t.description }}</div>
+            </td>
+            <td>{{ t.category }}</td>
+            {% if session.get('role') == 'admin' %}<td>{{ t.reporter_name }}</td>{% endif %}
+            <td>{{ t.created_at.strftime('%b %d, %Y') }}</td>
+            <td><span class="badge text-bg-{{ badge[t.status] }}">{{ t.status.replace('_', ' ') }}</span></td>
+            {% if session.get('role') == 'admin' %}
+            <td>
+                <form method="POST" action="{{ url_for('tickets.update_ticket_status', ticket_id=t.id) }}" class="d-flex gap-1">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <select name="status" class="form-select form-select-sm" aria-label="Status for ticket {{ t.id }}">
+                        {% for s in statuses %}
+                        <option value="{{ s }}" {% if s == t.status %}selected{% endif %}>{{ s.replace('_', ' ') }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="btn btn-outline-primary btn-sm">Save</button>
+                </form>
+            </td>
+            {% endif %}
+            <td>
+                <div class="d-flex flex-wrap gap-1">
+                    {% if session.get('role') == 'admin' or t.status == 'open' %}
+                    <a href="{{ url_for('tickets.edit_ticket', ticket_id=t.id) }}" class="btn btn-outline-primary btn-sm">Edit</a>
+                    {% endif %}
+                    <form method="POST" action="{{ url_for('tickets.delete_ticket', ticket_id=t.id) }}" onsubmit="return confirm('Delete ticket #{{ t.id }} from CommunityBoard? This cannot be undone.');">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-outline-danger btn-sm">Delete</button>
+                    </form>
+                </div>
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+</div>
+</div>
+{% else %}
+<div class="card"><div class="card-body text-center text-muted">No tickets yet.</div></div>
+{% endif %}
+{% endblock %}

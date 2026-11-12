@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Events - CommunityBoard{% endblock %}
+{% macro event_card(e) %}
+<div class="card mb-3 shadow-sm">
+    <div class="card-body">
+        <h2 class="h5">{{ e.title }}</h2>
+        <p class="mb-1"><strong>{{ e.event_date.strftime('%A, %B %d, %Y') }}</strong>{% if e.location %} &middot; {{ e.location }}{% endif %}</p>
+        <p class="mb-0" style="white-space: pre-line;">{{ e.description }}</p>
+        <p class="text-muted small mt-2 mb-0">Posted by {{ e.author_name }}</p>
+
+        {% if session.get('role') == 'admin' %}
+        <div class="mt-3 d-flex gap-2">
+            <a href="{{ url_for('events.edit_event', event_id=e.id) }}" class="btn btn-outline-primary btn-sm">Edit</a>
+            <form method="POST" action="{{ url_for('events.delete_event', event_id=e.id) }}" onsubmit="return confirm('Delete this event?');">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-outline-danger btn-sm">Delete</button>
+            </form>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endmacro %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3 mb-0">Events</h1>
+    {% if session.get('role') == 'admin' %}
+        <a href="{{ url_for('events.create_event') }}" class="btn btn-cb">New event</a>
+    {% endif %}
+</div>
+
+<h2 class="h5 text-muted mb-3">Upcoming</h2>
+{% if upcoming %}
+    {% for e in upcoming %}{{ event_card(e) }}{% endfor %}
+{% else %}
+    <div class="card mb-4"><div class="card-body text-center text-muted">No upcoming events.</div></div>
+{% endif %}
+
+{% if past %}
+<h2 class="h5 text-muted mb-3 mt-4">Past events</h2>
+    {% for e in past %}{{ event_card(e) }}{% endfor %}
+{% endif %}
+{% endblock %}

@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}{% if ticket %}Edit ticket #{{ ticket.id }}{% else %}Report a concern{% endif %} - CommunityBoard{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+<div class="col-lg-8">
+<div class="card shadow-sm"><div class="card-body p-4">
+    <h1 class="h4 mb-1">{% if ticket %}Edit ticket #{{ ticket.id }}{% else %}Report a concern{% endif %}</h1>
+    <p class="text-muted small mb-3">
+        {% if ticket %}Update the category or details. Your changes will be emailed to the municipality when email delivery is available.{% else %}Your ticket will be saved here and sent by email to the municipality of Santa Cruz.{% endif %}
+    </p>
+    <form method="POST" class="needs-validation" novalidate>
+        {{ form.hidden_tag() }}
+
+        <div class="mb-3">
+            {{ form.category.label(class="form-label") }}
+            {{ form.category(class="form-select", required=True) }}
+            <div class="invalid-feedback">Please choose a category.</div>
+            {% for e in form.category.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+        </div>
+
+        <div class="mb-3">
+            {{ form.subject.label(class="form-label") }}
+            {{ form.subject(class="form-control", required=True, minlength=5, maxlength=150) }}
+            <div class="invalid-feedback">Subject must be 5 to 150 characters.</div>
+            {% for e in form.subject.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+        </div>
+
+        <div class="mb-3">
+            {{ form.description.label(class="form-label") }}
+            {{ form.description(class="form-control", rows=6, required=True, minlength=20, maxlength=2000) }}
+            <div class="invalid-feedback">Please describe the concern (at least 20 characters).</div>
+            {% for e in form.description.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+        </div>
+
+        <button type="submit" class="btn btn-cb">{% if ticket %}Save changes{% else %}Submit ticket{% endif %}</button>
+        <a href="{{ url_for('tickets.list_tickets') }}" class="btn btn-outline-secondary">Cancel</a>
+    </form>
+</div></div>
+</div>
+</div>
+{% endblock %}
+

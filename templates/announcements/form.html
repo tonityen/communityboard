@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}{% if announcement %}Edit{% else %}New{% endif %} announcement - CommunityBoard{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+<div class="col-lg-8">
+<div class="card shadow-sm"><div class="card-body p-4">
+    <h1 class="h4 mb-3">{% if announcement %}Edit announcement{% else %}New announcement{% endif %}</h1>
+    <form method="POST" class="needs-validation" novalidate>
+        {{ form.hidden_tag() }}
+
+        <div class="mb-3">
+            {{ form.title.label(class="form-label") }}
+            {{ form.title(class="form-control", required=True, minlength=3, maxlength=150) }}
+            <div class="invalid-feedback">Title must be 3 to 150 characters.</div>
+            {% for e in form.title.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+        </div>
+
+        <div class="mb-3">
+            {{ form.content.label(class="form-label") }}
+            {{ form.content(class="form-control", rows=6, required=True, minlength=10, maxlength=5000) }}
+            <div class="invalid-feedback">Content must be at least 10 characters.</div>
+            {% for e in form.content.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+        </div>
+
+        <button type="submit" class="btn btn-cb">{% if announcement %}Save changes{% else %}Post announcement{% endif %}</button>
+        <a href="{{ url_for('announcements.list_announcements') }}" class="btn btn-outline-secondary">Cancel</a>
+    </form>
+</div></div>
+</div>
+</div>
+{% endblock %}

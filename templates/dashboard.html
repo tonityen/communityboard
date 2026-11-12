@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% block title %}Dashboard - CommunityBoard{% endblock %}
+{% block content %}
+{% set is_admin = role == 'admin' %}
+{% set badge = {'open': 'warning', 'in_progress': 'info', 'resolved': 'success'} %}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+    <div>
+        <h1 class="h3 mb-1">Welcome, {{ name }}!</h1>
+        <p class="text-muted mb-0">
+            You are logged in as
+            <span class="badge text-bg-primary">{{ role }}</span>
+        </p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+        {% if is_admin %}
+            <a href="{{ url_for('announcements.create_announcement') }}" class="btn btn-cb"><i class="bi bi-megaphone me-1"></i>New announcement</a>
+            <a href="{{ url_for('events.create_event') }}" class="btn btn-cb"><i class="bi bi-calendar-plus me-1"></i>New event</a>
+            <a href="{{ url_for('tickets.list_tickets') }}" class="btn btn-outline-primary"><i class="bi bi-inbox me-1"></i>All tickets</a>
+        {% else %}
+            <a href="{{ url_for('tickets.create_ticket') }}" class="btn btn-cb"><i class="bi bi-flag me-1"></i>Report a concern</a>
+            <a href="{{ url_for('events.list_events') }}" class="btn btn-outline-primary"><i class="bi bi-calendar-event me-1"></i>See events</a>
+        {% endif %}
+    </div>
+</div>
+
+{#key number#}
+<div class="row row-cols-2 row-cols-lg-4 g-3 mb-4">
+    {% if is_admin %}
+        <div class="col"><div class="card dashboard-stat shadow-sm h-100"><div class="card-body">
+            <div class="text-muted small">Residents</div>
+            <div class="display-6 fw-semibold">{{ stats.residents }}</div>
+        </div></div></div>
+        <div class="col"><div class="card dashboard-stat shadow-sm h-100"><div class="card-body">
+            <div class="text-muted small">Announcements</div>
+            <div class="display-6 fw-semibold">{{ stats.announcements }}</div>
+        </div></div></div>
+        <div class="col"><div class="card dashboard-stat shadow-sm h-100"><div class="card-body">
+            <div class="text-muted small">Upcoming events</div>
+            <div class="display-6 fw-semibold">{{ stats.events }}</div>
+        </div></div></div>
+        <div class="col"><div class="card dashboard-stat shadow-sm h-100"><div class="card-body">
+            <div class="text-muted small">Open tickets</div>
+            <div class="display-6 fw-semibold">{{ stats.tickets['open'] }}</div>
+            <div class="small text-muted">{{ stats.tickets['in_progress'] }} in progress</div>
+        </div></div></div>
+    {% else %}
+        <div class="col"><div class="card dashboard-stat shadow-sm h-100"><div class="card-body">
+            <div class="text-muted small">My open tickets</div>
+            <div class="display-6 fw-semibold">{{ stats.tickets['open'] }}</div>
+        </div></div></div>
+        <div class="col"><div class="card dashboard-stat shadow-sm h-100"><div class="card-body">
+            <div class="text-muted small">In progress</div>
+            <div class="display-6 fw-semibold">{{ stats.tickets['in_progress'] }}</div>
+        </div></div></div>
+        <div class="col"><div class="card dashboard-stat shadow-sm h-100"><div class="card-body">
+            <div class="text-muted small">Resolved</div>
+            <div class="display-6 fw-semibold">{{ stats.tickets['resolved'] }}</div>
+        </div></div></div>
+    {% endif %}
+</div>
+
+{#recent activity#}
+<div class="row g-4 mb-4">
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h2 class="h6 mb-0">Latest announcements</h2>
+                <a href="{{ url_for('announcements.list_announcements') }}" class="small">View all</a>
+            </div>
+            <ul class="list-group list-group-flush">
+                {% for a in announcements %}
+                <li class="list-group-item">
+                    <div class="fw-semibold">{{ a.title }}</div>
+                    <div class="small text-muted mb-1">{{ a.created_at.strftime('%B %d, %Y') }} &middot; {{ a.author_name }}</div>
+                    <div class="small">{{ a.content|truncate(110) }}</div>
+                </li>
+                {% else %}
+                <li class="list-group-item text-center text-muted">No announcements yet.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h2 class="h6 mb-0">Upcoming events</h2>
+                <a href="{{ url_for('events.list_events') }}" class="small">View all</a>
+            </div>
+            <ul class="list-group list-group-flush">
+                {% for e in events %}
+                <li class="list-group-item">
+                    <div class="fw-semibold">{{ e.title }}</div>
+                    <div class="small text-muted">
+                        {{ e.event_date.strftime('%A, %B %d, %Y') }}{% if e.location %} &middot; {{ e.location }}{% endif %}
+                    </div>
+                </li>
+                {% else %}
+                <li class="list-group-item text-center text-muted">No upcoming events.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h2 class="h6 mb-0">{% if is_admin %}Recent tickets{% else %}My recent tickets{% endif %}</h2>
+        <a href="{{ url_for('tickets.list_tickets') }}" class="small">View all</a>
+    </div>
+    {% if tickets %}
+    <div class="table-responsive">
+        <table class="table align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Concern</th>
+                    <th>Category</th>
+                    {% if is_admin %}<th>Reported by</th>{% endif %}
+                    <th>Date</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for t in tickets %}
+                <tr>
+                    <td class="fw-semibold">{{ t.subject }}</td>
+                    <td>{{ t.category }}</td>
+                    {% if is_admin %}<td>{{ t.reporter_name }}</td>{% endif %}
+                    <td>{{ t.created_at.strftime('%b %d, %Y') }}</td>
+                    <td><span class="badge text-bg-{{ badge[t.status] }}">{{ t.status.replace('_', ' ') }}</span></td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="card-body text-center text-muted">
+        {% if is_admin %}No tickets yet.{% else %}You have not reported anything yet.{% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

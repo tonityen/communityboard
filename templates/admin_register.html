@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% from "_macros.html" import password_field %}
+{% block title %}Barangay official registration - CommunityBoard{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+<div class="col-md-9 col-lg-6">
+<div class="card shadow-sm"><div class="card-body p-4">
+    <h2 class="h4 mb-1">Barangay official registration</h2>
+    <p class="text-muted small mb-3">You need the admin access code from the barangay.</p>
+    <form method="POST" class="needs-validation" novalidate>
+        {% include "_register_fields.html" %}
+        {{ password_field(form.access_code, "key", required=True, data_rule="access", autocomplete="off") }}
+        <button type="submit" class="btn btn-cb w-100" data-loading="Creating account...">Register as admin</button>
+    </form>
+    <p class="mt-3 mb-0 small text-center">Not an official? <a href="{{ url_for('auth.register') }}">Register as a resident</a></p>
+</div></div>
+</div>
+</div>
+{% endblock %}

@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% block title %}My profile - CommunityBoard{% endblock %}
+{% block content %}
+<h1 class="h3 mb-3">My profile</h1>
+
+<div class="row g-3">
+
+    <div class="col-lg-4">
+        <div class="card shadow-sm"><div class="card-body text-center p-4">
+            {% if user.photo %}
+                <img src="{{ url_for('static', filename='uploads/profiles/' ~ user.photo) }}" alt="Profile photo"
+                     class="rounded-circle mb-3" width="120" height="120" style="object-fit: cover;">
+            {% else %}
+                <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-3 text-white"
+                     style="width: 120px; height: 120px; font-size: 3rem; background-color: var(--cb-blue);">
+                    {{ user.full_name[0]|upper }}
+                </div>
+            {% endif %}
+            <h2 class="h5 mb-0">{{ user.full_name }}</h2>
+            <p class="text-muted small mb-3">{{ user.email }} &middot; <span class="badge text-bg-primary">{{ user.role }}</span></p>
+
+            <form method="POST" action="{{ url_for('profile.update_photo') }}" enctype="multipart/form-data" class="needs-validation text-start" novalidate>
+                {{ photo_form.hidden_tag() }}
+                {{ photo_form.photo.label(class="form-label small") }}
+                {{ photo_form.photo(class="form-control form-control-sm", accept=".jpg,.jpeg,.png", required=True) }}
+                <div class="invalid-feedback">Please choose a JPG or PNG photo.</div>
+                {% for e in photo_form.photo.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+                <button type="submit" class="btn btn-outline-primary btn-sm w-100 mt-2">Upload photo</button>
+            </form>
+        </div></div>
+    </div>
+
+    <div class="col-lg-8">
+
+        <div class="card shadow-sm mb-3"><div class="card-body p-4">
+            <h2 class="h5 mb-3">Account details</h2>
+            <form method="POST" action="{{ url_for('profile.update_details') }}" class="needs-validation" novalidate>
+                {{ details_form.hidden_tag() }}
+
+                <div class="mb-3">
+                    {{ details_form.full_name.label(class="form-label") }}
+                    {{ details_form.full_name(class="form-control", required=True, minlength=2, maxlength=100) }}
+                    <div class="invalid-feedback">Please enter your full name (2 to 100 characters).</div>
+                    {% for e in details_form.full_name.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+                </div>
+
+                <div class="mb-3">
+                    {{ details_form.email.label(class="form-label") }}
+                    {{ details_form.email(class="form-control", required=True, maxlength=120) }}
+                    <div class="form-text">If you change your email, you will need to verify the new one and log in again.</div>
+                    <div class="invalid-feedback">Please enter a valid email.</div>
+                    {% for e in details_form.email.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+                </div>
+
+                <button type="submit" class="btn btn-cb">Save details</button>
+            </form>
+        </div></div>
+
+        <div class="card shadow-sm mb-3"><div class="card-body p-4">
+            <h2 class="h5 mb-3">Change password</h2>
+            <form method="POST" action="{{ url_for('profile.change_password') }}" class="needs-validation" novalidate>
+                {{ password_form.hidden_tag() }}
+
+                <div class="mb-3">
+                    {{ password_form.current_password.label(class="form-label") }}
+                    {{ password_form.current_password(class="form-control", required=True) }}
+                    <div class="invalid-feedback">Please enter your current password.</div>
+                    {% for e in password_form.current_password.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+                </div>
+
+                <div class="mb-3">
+                    {{ password_form.password.label(class="form-label") }}
+                    {{ password_form.password(class="form-control", required=True, minlength=8, maxlength=64) }}
+                    <div class="invalid-feedback">Password must be 8 to 64 characters.</div>
+                    {% for e in password_form.password.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+                </div>
+
+                <div class="mb-3">
+                    {{ password_form.confirm_password.label(class="form-label") }}
+                    {{ password_form.confirm_password(class="form-control", required=True) }}
+                    <div class="invalid-feedback">Passwords do not match.</div>
+                    {% for e in password_form.confirm_password.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+                </div>
+
+                <button type="submit" class="btn btn-cb">Change password</button>
+            </form>
+        </div></div>
+
+        <div class="card border-danger shadow-sm"><div class="card-body p-4">
+            <h2 class="h5 text-danger mb-1">Delete my account</h2>
+            <p class="small text-muted mb-3">
+                This cannot be undone.
+                {% if user.role == 'admin' %}Your announcements and events will stay on the board.{% else %}Your tickets will also be deleted.{% endif %}
+            </p>
+            <form method="POST" action="{{ url_for('profile.delete_account') }}" class="needs-validation" novalidate
+                  onsubmit="return confirm('Delete your account for good?');">
+                {{ delete_form.hidden_tag() }}
+
+                <div class="mb-3">
+                    {{ delete_form.account_password.label(class="form-label") }}
+                    {{ delete_form.account_password(class="form-control", required=True) }}
+                    <div class="invalid-feedback">Please enter your password.</div>
+                    {% for e in delete_form.account_password.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+                </div>
+
+                <button type="submit" class="btn btn-danger">Delete my account</button>
+            </form>
+        </div></div>
+
+    </div>
+</div>
+{% endblock %}
