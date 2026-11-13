@@ -22,6 +22,7 @@ CREATE TABLE IF NOT EXISTS announcements (
     id INT AUTO_INCREMENT PRIMARY KEY,
     title VARCHAR(150) NOT NULL,
     content TEXT NOT NULL,
+    image VARCHAR(255) NULL,
     created_by INT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (created_by) REFERENCES users(id)
@@ -33,6 +34,7 @@ CREATE TABLE IF NOT EXISTS events (
     description TEXT NOT NULL,
     event_date DATE NOT NULL,
     location VARCHAR(150),
+    image VARCHAR(255) NULL,
     created_by INT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (created_by) REFERENCES users(id)

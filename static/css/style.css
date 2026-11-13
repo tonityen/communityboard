@@ -42,6 +42,9 @@ footer { color: var(--cb-muted); }
 .dashboard-stat { border-top: 3px solid #e8ad58; }
 .dashboard-stat .display-6 { color: var(--cb-blue); }
 .list-group-item { background: transparent; border-color: var(--cb-line); }
+.content-photo { display: block; width: 100%; max-height: 300px; object-fit: cover; border-radius: 1rem 1rem 0 0; }
+.content-photo-preview { display: block; max-width: 100%; max-height: 220px; border-radius: .75rem; object-fit: cover; }
+.dashboard-image-thumb { width: 64px; height: 64px; flex: 0 0 64px; border-radius: .65rem; object-fit: cover; }
 @media (max-width: 575.98px) {
   main.container { margin-top: 1rem !important; }
   .hero { border-radius: 1rem; }

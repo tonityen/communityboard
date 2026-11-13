@@ -18,7 +18,7 @@
     <div class="input-group has-validation">
         <span class="input-group-text"><i class="bi bi-{{ icon }}"></i></span>
         {{ f(class="form-control" ~ (" is-invalid" if f.errors else ""), **kwargs) }}
-        <button class="btn btn-outline-secondary toggle-password" type="button" aria-label="Show password" tabindex="-1">
+        <button class="btn btn-outline-secondary toggle-password" type="button" aria-label="Show password">
             <i class="bi bi-eye"></i>
         </button>
         <div class="invalid-feedback">{{ f.errors[0] if f.errors else "" }}</div>

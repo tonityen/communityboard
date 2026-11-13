@@ -14,6 +14,7 @@ class Database:
             "database": app.config["DB_NAME"],
         }
         cls.ensure_login_columns()
+        cls.ensure_content_image_columns()
 
     @classmethod
     def ensure_login_columns(cls):
@@ -30,6 +31,15 @@ class Database:
             statements.append("ADD COLUMN locked_until DATETIME NULL")
         if statements:
             cls.execute("ALTER TABLE users " + ", ".join(statements))
+
+    @classmethod
+    def ensure_content_image_columns(cls):
+        """Add optional image fields to databases created before content photos were supported."""
+        for table in ("announcements", "events"):
+            rows = cls.query(f"SHOW COLUMNS FROM {table}")
+            names = {row["Field"] for row in rows}
+            if "image" not in names:
+                cls.execute(f"ALTER TABLE {table} ADD COLUMN image VARCHAR(255) NULL")
 
     @classmethod
     def query(cls, sql, params=(), one=False):

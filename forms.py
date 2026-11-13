@@ -148,6 +148,7 @@ class ResetPasswordForm(FlaskForm):
 class AnnouncementForm(FlaskForm):
     title = StringField("Title", validators=[DataRequired(), Length(min=3, max=150)])
     content = TextAreaField("Content", validators=[DataRequired(), Length(min=10, max=5000)])
+    photo = FileField("Optional photo", validators=[FileAllowed(["jpg", "jpeg", "png"], "Choose a JPG or PNG image.")])
 
 
 class TicketForm(FlaskForm):
@@ -161,6 +162,7 @@ class EventForm(FlaskForm):
     event_date = DateField("Event date", validators=[DataRequired()])
     location = StringField("Location", validators=[Optional(), Length(max=150)])
     description = TextAreaField("Description", validators=[DataRequired(), Length(min=10, max=3000)])
+    photo = FileField("Optional photo", validators=[FileAllowed(["jpg", "jpeg", "png"], "Choose a JPG or PNG image.")])
 
 
 class ProfileForm(FlaskForm):

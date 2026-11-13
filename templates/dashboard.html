@@ -71,9 +71,12 @@
             <ul class="list-group list-group-flush">
                 {% for a in announcements %}
                 <li class="list-group-item">
-                    <div class="fw-semibold">{{ a.title }}</div>
+                    <div class="d-flex gap-3 align-items-start">
+                    {% if a.image %}<img src="{{ url_for('static', filename='uploads/announcements/' ~ a.image) }}" alt="" class="dashboard-image-thumb">{% endif %}
+                    <div><div class="fw-semibold">{{ a.title }}</div>
                     <div class="small text-muted mb-1">{{ a.created_at.strftime('%B %d, %Y') }} &middot; {{ a.author_name }}</div>
                     <div class="small">{{ a.content|truncate(110) }}</div>
+                    </div></div>
                 </li>
                 {% else %}
                 <li class="list-group-item text-center text-muted">No announcements yet.</li>
@@ -85,21 +88,37 @@
     <div class="col-lg-6">
         <div class="card shadow-sm h-100">
             <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                <h2 class="h6 mb-0">Upcoming events</h2>
+                <h2 class="h6 mb-0">Community events</h2>
                 <a href="{{ url_for('events.list_events') }}" class="small">View all</a>
             </div>
             <ul class="list-group list-group-flush">
                 {% for e in events %}
                 <li class="list-group-item">
-                    <div class="fw-semibold">{{ e.title }}</div>
+                    <div class="d-flex gap-3 align-items-start">
+                    {% if e.image %}<img src="{{ url_for('static', filename='uploads/events/' ~ e.image) }}" alt="" class="dashboard-image-thumb">{% endif %}
+                    <div><div class="fw-semibold">{{ e.title }}</div>
                     <div class="small text-muted">
                         {{ e.event_date.strftime('%A, %B %d, %Y') }}{% if e.location %} &middot; {{ e.location }}{% endif %}
-                    </div>
+                    </div></div></div>
                 </li>
                 {% else %}
                 <li class="list-group-item text-center text-muted">No upcoming events.</li>
                 {% endfor %}
             </ul>
+            {% if past_events %}
+            <div class="px-3 pt-3 pb-1 border-top"><h3 class="small fw-semibold text-muted mb-0">Recently held</h3></div>
+            <ul class="list-group list-group-flush">
+                {% for e in past_events %}
+                <li class="list-group-item">
+                    <div class="d-flex gap-3 align-items-start">
+                    {% if e.image %}<img src="{{ url_for('static', filename='uploads/events/' ~ e.image) }}" alt="" class="dashboard-image-thumb">{% endif %}
+                    <div><div class="fw-semibold">{{ e.title }}</div>
+                    <div class="small text-muted">{{ e.event_date.strftime('%A, %B %d, %Y') }}{% if e.location %} &middot; {{ e.location }}{% endif %}</div>
+                    </div></div>
+                </li>
+                {% endfor %}
+            </ul>
+            {% endif %}
         </div>
     </div>
 </div>

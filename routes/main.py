@@ -21,6 +21,7 @@ def dashboard():
     data = {
         "announcements": Announcement.get_recent(3),
         "events": Event.get_next(3),
+        "past_events": Event.get_recent_past(3),
     }
 
     if session["role"] == "admin":

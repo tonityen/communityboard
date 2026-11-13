@@ -5,7 +5,7 @@
 <div class="col-lg-8">
 <div class="card shadow-sm"><div class="card-body p-4">
     <h1 class="h4 mb-3">{% if announcement %}Edit announcement{% else %}New announcement{% endif %}</h1>
-    <form method="POST" class="needs-validation" novalidate>
+    <form method="POST" enctype="multipart/form-data" class="needs-validation" novalidate>
         {{ form.hidden_tag() }}
 
         <div class="mb-3">
@@ -20,6 +20,17 @@
             {{ form.content(class="form-control", rows=6, required=True, minlength=10, maxlength=5000) }}
             <div class="invalid-feedback">Content must be at least 10 characters.</div>
             {% for e in form.content.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+        </div>
+
+        <div class="mb-3">
+            {{ form.photo.label(class="form-label") }}
+            {{ form.photo(class="form-control", accept=".jpg,.jpeg,.png") }}
+            <div class="form-text">Optional. JPG or PNG, up to 3 MB.</div>
+            {% for e in form.photo.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+            {% if announcement and announcement.image %}
+                <img src="{{ url_for('static', filename='uploads/announcements/' ~ announcement.image) }}" alt="Current announcement photo" class="content-photo-preview mt-2">
+                <div class="form-text">Choose another image to replace the current photo, or leave blank to keep it.</div>
+            {% endif %}
         </div>
 
         <button type="submit" class="btn btn-cb">{% if announcement %}Save changes{% else %}Post announcement{% endif %}</button>

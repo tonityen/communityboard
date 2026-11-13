@@ -105,9 +105,10 @@
             var input = button.parentElement.querySelector('input');
             var icon = button.querySelector('i');
             var showing = input.type === 'text';
+            var willShow = !showing;
             input.type = showing ? 'password' : 'text';
-            icon.className = showing ? 'bi bi-eye' : 'bi bi-eye-slash';
-            button.setAttribute('aria-label', showing ? 'Show password' : 'Hide password');
+            icon.className = willShow ? 'bi bi-eye-slash' : 'bi bi-eye';
+            button.setAttribute('aria-label', willShow ? 'Hide password' : 'Show password');
         });
     });
 

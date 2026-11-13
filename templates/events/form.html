@@ -5,7 +5,7 @@
 <div class="col-lg-8">
 <div class="card shadow-sm"><div class="card-body p-4">
     <h1 class="h4 mb-3">{% if event %}Edit event{% else %}New event{% endif %}</h1>
-    <form method="POST" class="needs-validation" novalidate>
+    <form method="POST" enctype="multipart/form-data" class="needs-validation" novalidate>
         {{ form.hidden_tag() }}
 
         <div class="mb-3">
@@ -34,6 +34,17 @@
             {{ form.description(class="form-control", rows=5, required=True, minlength=10, maxlength=3000) }}
             <div class="invalid-feedback">Description must be at least 10 characters.</div>
             {% for e in form.description.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+        </div>
+
+        <div class="mb-3">
+            {{ form.photo.label(class="form-label") }}
+            {{ form.photo(class="form-control", accept=".jpg,.jpeg,.png") }}
+            <div class="form-text">Optional. JPG or PNG, up to 3 MB.</div>
+            {% for e in form.photo.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+            {% if event and event.image %}
+                <img src="{{ url_for('static', filename='uploads/events/' ~ event.image) }}" alt="Current event photo" class="content-photo-preview mt-2">
+                <div class="form-text">Choose another image to replace the current photo, or leave blank to keep it.</div>
+            {% endif %}
         </div>
 
         <button type="submit" class="btn btn-cb">{% if event %}Save changes{% else %}Post event{% endif %}</button>

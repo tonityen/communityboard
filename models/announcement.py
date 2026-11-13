@@ -11,8 +11,8 @@ BASE_SELECT = """
 class Announcement(Post):
     table = "announcements"
 
-    def __init__(self, id, title, content, created_by, created_at=None, author_name=None):
-        super().__init__(id, title, created_by, created_at, author_name)
+    def __init__(self, id, title, content, created_by, created_at=None, author_name=None, image=None):
+        super().__init__(id, title, created_by, created_at, author_name, image)
         self.content = content
 
     @classmethod
@@ -21,7 +21,7 @@ class Announcement(Post):
             return None
         return cls(
             row["id"], row["title"], row["content"], row["created_by"],
-            row["created_at"], row.get("author_name"),
+            row["created_at"], row.get("author_name"), row.get("image"),
         )
 
     @classmethod
@@ -56,16 +56,17 @@ class Announcement(Post):
         return cls.from_row(row)
 
     @classmethod
-    def create(cls, title, content, created_by):
+    def create(cls, title, content, created_by, image=None):
         return Database.execute(
-            "INSERT INTO announcements (title, content, created_by) VALUES (%s, %s, %s)",
-            (title, content, created_by),
+            "INSERT INTO announcements (title, content, created_by, image) VALUES (%s, %s, %s, %s)",
+            (title, content, created_by, image),
         )
 
-    def update(self, title, content):
+    def update(self, title, content, image=None):
         Database.execute(
-            "UPDATE announcements SET title = %s, content = %s WHERE id = %s",
-            (title, content, self.id),
+            "UPDATE announcements SET title = %s, content = %s, image = %s WHERE id = %s",
+            (title, content, image, self.id),
         )
         self.title = title
         self.content = content
+        self.image = image

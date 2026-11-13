@@ -2,6 +2,7 @@
 {% block title %}Events - CommunityBoard{% endblock %}
 {% macro event_card(e) %}
 <div class="card mb-3 shadow-sm">
+    {% if e.image %}<img src="{{ url_for('static', filename='uploads/events/' ~ e.image) }}" alt="Photo for {{ e.title }}" class="content-photo">{% endif %}
     <div class="card-body">
         <h2 class="h5">{{ e.title }}</h2>
         <p class="mb-1"><strong>{{ e.event_date.strftime('%A, %B %d, %Y') }}</strong>{% if e.location %} &middot; {{ e.location }}{% endif %}</p>

@@ -3,6 +3,7 @@ from functools import wraps
 from flask import Blueprint, render_template, redirect, url_for, flash, session, abort
 
 from forms import AnnouncementForm
+from content_images import delete_content_image, save_content_image
 from models.announcement import Announcement
 from routes.auth import login_required
 
@@ -33,7 +34,14 @@ def list_announcements():
 def create_announcement():
     form = AnnouncementForm()
     if form.validate_on_submit():
-        Announcement.create(form.title.data.strip(), form.content.data.strip(), session["user_id"])
+        try:
+            image = save_content_image(form.photo.data, "announcements")
+        except ValueError as error:
+            flash(str(error), "danger")
+            return render_template("announcements/form.html", form=form, announcement=None)
+        Announcement.create(
+            form.title.data.strip(), form.content.data.strip(), session["user_id"], image
+        )
         flash("Announcement posted.", "success")
         return redirect(url_for("announcements.list_announcements"))
     return render_template("announcements/form.html", form=form, announcement=None)
@@ -48,7 +56,17 @@ def edit_announcement(announcement_id):
         abort(404)
     form = AnnouncementForm(obj=announcement)
     if form.validate_on_submit():
-        announcement.update(form.title.data.strip(), form.content.data.strip())
+        try:
+            new_image = save_content_image(form.photo.data, "announcements")
+        except ValueError as error:
+            flash(str(error), "danger")
+            return render_template("announcements/form.html", form=form, announcement=announcement)
+        old_image = announcement.image
+        announcement.update(
+            form.title.data.strip(), form.content.data.strip(), new_image or old_image
+        )
+        if new_image:
+            delete_content_image("announcements", old_image)
         flash("Announcement updated.", "success")
         return redirect(url_for("announcements.list_announcements"))
     return render_template("announcements/form.html", form=form, announcement=announcement)
@@ -61,6 +79,8 @@ def delete_announcement(announcement_id):
     announcement = Announcement.get_by_id(announcement_id)
     if announcement is None:
         abort(404)
+    image = announcement.image
     announcement.delete()
+    delete_content_image("announcements", image)
     flash("Announcement deleted.", "info")
     return redirect(url_for("announcements.list_announcements"))
