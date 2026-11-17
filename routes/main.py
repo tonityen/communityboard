@@ -17,6 +17,7 @@ def index():
 @main_bp.route("/dashboard")
 @login_required
 def dashboard():
+    show_welcome_modal = session.pop("show_welcome_modal", False)
     # Everyone sees the latest announcements and the next events.
     data = {
         "announcements": Announcement.get_recent(3),
@@ -37,5 +38,6 @@ def dashboard():
         data["tickets"] = Ticket.get_recent(5, user_id=session["user_id"])
 
     return render_template(
-        "dashboard.html", name=session["name"], role=session["role"], **data
+        "dashboard.html", name=session["name"], role=session["role"],
+        show_welcome_modal=show_welcome_modal, **data
     )

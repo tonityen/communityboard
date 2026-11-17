@@ -83,10 +83,14 @@ def update_details(user):
                 flash("That email is already used by another account.", "danger")
                 return show_page(user, details_form=form)
             user.update_profile(new_name, new_email)
-            Mailer.send_verification(user)
+            code = user.issue_verification_code()
+            sent = bool(code and Mailer.send_verification(user, code))
             session.clear()
-            flash("Your email was changed. We sent a verification link to the new address. Please verify it, then log in.", "info")
-            return redirect(url_for("auth.login"))
+            if sent:
+                flash("Your email was changed. Enter the code sent to your new address to verify it.", "info")
+            else:
+                flash("Your email was changed, but the verification code could not be sent. Request a new code.", "warning")
+            return redirect(url_for("verification.verify_code", email=new_email))
 
         user.update_profile(new_name, user.email)
         session["name"] = new_name
@@ -134,6 +138,19 @@ def update_photo(user):
         flash("Profile photo updated.", "success")
         return redirect(url_for("profile.view_profile"))
     return show_page(user, photo_form=form)
+
+
+@profile_bp.route("/photo/delete", methods=["POST"])
+@login_required
+@with_current_user
+def remove_photo(user):
+    if user.photo:
+        delete_photo_file(user.photo)
+        user.set_photo(None)
+        flash("Profile photo removed.", "success")
+    else:
+        flash("There is no profile photo to remove.", "info")
+    return redirect(url_for("profile.view_profile"))
 
 
 @profile_bp.route("/delete", methods=["POST"])

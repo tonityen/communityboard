@@ -1,5 +1,8 @@
 import hashlib
+import hmac
+import secrets
 
+from flask import current_app
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from models.database import Database
@@ -82,8 +85,77 @@ class User:
         self.locked_until = None
 
     def mark_verified(self):
-        Database.execute("UPDATE users SET is_verified = 1 WHERE id = %s", (self.id,))
+        Database.execute(
+            "UPDATE users SET is_verified = 1, verification_code_hash = NULL, "
+            "verification_code_expires_at = NULL, verification_code_sent_at = NULL, "
+            "verification_attempts = 0 WHERE id = %s",
+            (self.id,),
+        )
         self.is_verified = True
+
+    def _verification_digest(self, code):
+        secret = current_app.config["SECRET_KEY"].encode("utf-8")
+        message = f"email-verification:{self.id}:{code}".encode("utf-8")
+        return hmac.new(secret, message, hashlib.sha256).hexdigest()
+
+    def issue_verification_code(self):
+        """Create a six-digit code, expiring after ten minutes; allow one send per minute."""
+        row = Database.query(
+            "SELECT is_verified, (verification_code_sent_at IS NULL OR "
+            "verification_code_sent_at <= DATE_SUB(NOW(), INTERVAL 60 SECOND)) AS can_send "
+            "FROM users WHERE id = %s",
+            (self.id,), one=True,
+        )
+        if not row or row["is_verified"] or not row["can_send"]:
+            return None
+
+        code = f"{secrets.randbelow(1_000_000):06d}"
+        Database.execute(
+            "UPDATE users SET verification_code_hash = %s, "
+            "verification_code_expires_at = DATE_ADD(NOW(), INTERVAL 10 MINUTE), "
+            "verification_code_sent_at = NOW(), verification_attempts = 0 "
+            "WHERE id = %s AND is_verified = 0",
+            (self._verification_digest(code), self.id),
+        )
+        return code
+
+    def verify_email_code(self, code):
+        """Return verified, invalid, expired, or locked after five incorrect attempts."""
+        row = Database.query(
+            "SELECT is_verified, verification_code_hash, verification_attempts, "
+            "(verification_code_expires_at IS NOT NULL AND "
+            "verification_code_expires_at > NOW()) AS code_is_current "
+            "FROM users WHERE id = %s",
+            (self.id,), one=True,
+        )
+        if not row:
+            return "invalid"
+        if row["is_verified"]:
+            self.is_verified = True
+            return "verified"
+        if row["verification_attempts"] >= 5:
+            return "locked"
+        if not row["code_is_current"] or not row["verification_code_hash"]:
+            return "expired"
+
+        expected = self._verification_digest(code)
+        if not hmac.compare_digest(expected, row["verification_code_hash"]):
+            attempts = row["verification_attempts"] + 1
+            Database.execute(
+                "UPDATE users SET verification_attempts = %s, "
+                "verification_code_hash = %s WHERE id = %s",
+                (attempts, None if attempts >= 5 else row["verification_code_hash"], self.id),
+            )
+            return "locked" if attempts >= 5 else "invalid"
+
+        Database.execute(
+            "UPDATE users SET is_verified = 1, verification_code_hash = NULL, "
+            "verification_code_expires_at = NULL, verification_code_sent_at = NULL, "
+            "verification_attempts = 0 WHERE id = %s",
+            (self.id,),
+        )
+        self.is_verified = True
+        return "verified"
 
     def password_fingerprint(self):
         return hashlib.sha256(self.__password_hash.encode()).hexdigest()[:16]
@@ -96,7 +168,9 @@ class User:
     def update_profile(self, full_name, email):
         if email != self.email:
             Database.execute(
-                "UPDATE users SET full_name = %s, email = %s, is_verified = 0 WHERE id = %s",
+                "UPDATE users SET full_name = %s, email = %s, is_verified = 0, "
+                "verification_code_hash = NULL, verification_code_expires_at = NULL, "
+                "verification_code_sent_at = NULL, verification_attempts = 0 WHERE id = %s",
                 (full_name, email, self.id),
             )
             self.is_verified = False

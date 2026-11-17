@@ -41,6 +41,9 @@ class Mailer:
             f"Category: {ticket.category}\n"
             f"Subject: {ticket.subject}\n"
             f"Submitted by: {user.full_name} ({user.email})\n\n"
+            + (f"Incident location: {ticket.incident_location}\n" if ticket.incident_location else "")
+            + (f"Incident date: {ticket.incident_date}\n" if ticket.incident_date else "")
+            + "\n"
             "Description:\n"
             f"{ticket.description}\n"
         )
@@ -59,6 +62,9 @@ class Mailer:
             f"Category: {ticket.category}\n"
             f"Subject: {ticket.subject}\n"
             f"Submitted by: {user.full_name} ({user.email})\n\n"
+            + (f"Incident location: {ticket.incident_location}\n" if ticket.incident_location else "")
+            + (f"Incident date: {ticket.incident_date}\n" if ticket.incident_date else "")
+            + "\n"
             "Updated description:\n"
             f"{ticket.description}\n"
         )
@@ -81,25 +87,46 @@ class Mailer:
 
     @staticmethod
     def public_url(endpoint, **values):
-        """Build email links from the configured public address when available."""
-        public_base = current_app.config.get("PUBLIC_BASE_URL", "")
-        path = url_for(endpoint, **values)
-        if public_base:
-            return f"{public_base}{path}"
+        """Build a link for the host currently serving the request."""
         values["_external"] = True
         return url_for(endpoint, **values)
     @staticmethod
-    def send_verification(user):
-        token = TokenService.make({"id": user.id, "email": user.email}, "verify-email")
-        link = Mailer.public_url("verification.verify_email", token=token)
+    def send_verification(user, code):
         body = (
             f"Hello {user.full_name},\n\n"
             "Thank you for registering on CommunityBoard (Barangay Duhat).\n"
-            "Please click this link to verify your email. It only works for 24 hours:\n\n"
-            f"{link}\n\n"
+            "Enter this six-digit code in CommunityBoard to verify your email. "
+            "It expires in 10 minutes:\n\n"
+            f"{code}\n\n"
             "If you did not create this account, you can ignore this email.\n"
         )
-        return Mailer.send(user.email, "Verify your CommunityBoard account", body)
+        return Mailer.send(user.email, "Your CommunityBoard verification code", body)
+
+    @staticmethod
+    def send_duplicate_confirmation(ticket, user):
+        body = (
+            f"Hello {user.full_name},\n\n"
+            "Your concern was added as support for a similar open report in CommunityBoard.\n\n"
+            f"Ticket number: {ticket.id}\n"
+            f"Subject: {ticket.subject}\n"
+            f"Category: {ticket.category}\n\n"
+            "The barangay team can review one report with the number of residents affected. "
+            "You can track this ticket under Tickets.\n"
+        )
+        return Mailer.send(user.email, f"Your report was attached to ticket #{ticket.id}", body)
+
+    @staticmethod
+    def send_ticket_status_update(ticket, user):
+        if not user:
+            return False
+        body = (
+            f"Hello {user.full_name},\n\n"
+            f"There is an update to your concern, ticket #{ticket.id}.\n\n"
+            f"Status: {ticket.status.replace('_', ' ')}\n"
+            f"Subject: {ticket.subject}\n"
+            + (f"Barangay update: {ticket.resolution_note}\n" if ticket.resolution_note else "")
+        )
+        return Mailer.send(user.email, f"Update for CommunityBoard ticket #{ticket.id}", body)
 
     @staticmethod
     def send_password_reset(user):

@@ -1,6 +1,6 @@
 from functools import wraps
 
-from flask import Blueprint, render_template, redirect, url_for, flash, session, abort
+from flask import Blueprint, render_template, redirect, url_for, flash, session, abort, request
 
 from forms import AnnouncementForm
 from content_images import delete_content_image, save_content_image
@@ -24,8 +24,16 @@ def admin_required(view):
 @announcements_bp.route("/")
 @login_required
 def list_announcements():
+    query = (request.args.get("q") or "").strip()
+    category = (request.args.get("category") or "").strip()
     announcements = Announcement.get_all()
-    return render_template("announcements/list.html", announcements=announcements)
+    categories = sorted({item.category for item in announcements})
+    if query:
+        needle = query.casefold()
+        announcements = [item for item in announcements if needle in item.title.casefold() or needle in item.content.casefold()]
+    if category:
+        announcements = [item for item in announcements if item.category == category]
+    return render_template("announcements/list.html", announcements=announcements, query=query, category=category, categories=categories)
 
 
 @announcements_bp.route("/new", methods=["GET", "POST"])
@@ -40,7 +48,7 @@ def create_announcement():
             flash(str(error), "danger")
             return render_template("announcements/form.html", form=form, announcement=None)
         Announcement.create(
-            form.title.data.strip(), form.content.data.strip(), session["user_id"], image
+            form.title.data.strip(), form.content.data.strip(), session["user_id"], image, form.category.data
         )
         flash("Announcement posted.", "success")
         return redirect(url_for("announcements.list_announcements"))
@@ -63,7 +71,7 @@ def edit_announcement(announcement_id):
             return render_template("announcements/form.html", form=form, announcement=announcement)
         old_image = announcement.image
         announcement.update(
-            form.title.data.strip(), form.content.data.strip(), new_image or old_image
+            form.title.data.strip(), form.content.data.strip(), new_image or old_image, form.category.data
         )
         if new_image:
             delete_content_image("announcements", old_image)

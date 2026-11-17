@@ -128,6 +128,14 @@ class ResendVerificationForm(FlaskForm):
     email = EmailField("Email", validators=[DataRequired(), Email()])
 
 
+class VerificationCodeForm(FlaskForm):
+    email = EmailField("Email address", validators=[DataRequired(), Email(), Length(max=120)])
+    code = StringField("6-digit email code", validators=[
+        DataRequired(message="Enter the code from your email."),
+        Regexp(r"^[0-9]{6}$", message="Enter the 6-digit code from your email."),
+    ])
+
+
 class ForgotPasswordForm(FlaskForm):
     email = EmailField("Email", validators=[DataRequired(), Email()])
 
@@ -146,6 +154,7 @@ class ResetPasswordForm(FlaskForm):
 
 
 class AnnouncementForm(FlaskForm):
+    category = SelectField("Category", choices=[("General", "General"), ("Health", "Health"), ("Public services", "Public services"), ("Safety", "Safety"), ("Youth and sports", "Youth and sports")], validators=[DataRequired()])
     title = StringField("Title", validators=[DataRequired(), Length(min=3, max=150)])
     content = TextAreaField("Content", validators=[DataRequired(), Length(min=10, max=5000)])
     photo = FileField("Optional photo", validators=[FileAllowed(["jpg", "jpeg", "png"], "Choose a JPG or PNG image.")])
@@ -153,11 +162,14 @@ class AnnouncementForm(FlaskForm):
 
 class TicketForm(FlaskForm):
     category = SelectField("Category", validators=[DataRequired()])
-    subject = StringField("Subject", validators=[DataRequired(), Length(min=5, max=150)])
-    description = TextAreaField("Describe the concern", validators=[DataRequired(), Length(min=20, max=2000)])
+    subject = StringField("Short title", validators=[DataRequired(), Length(min=8, max=100)])
+    description = TextAreaField("What happened?", validators=[DataRequired(), Length(min=30, max=600)])
+    incident_location = StringField("Incident location / purok", validators=[Optional(), Length(max=150)])
+    incident_date = DateField("Approximate incident date", validators=[Optional()], format="%Y-%m-%d")
 
 
 class EventForm(FlaskForm):
+    category = SelectField("Category", choices=[("Community", "Community"), ("Health", "Health"), ("Sports", "Sports"), ("Youth", "Youth"), ("Clean-up", "Clean-up"), ("Meeting", "Meeting")], validators=[DataRequired()])
     title = StringField("Title", validators=[DataRequired(), Length(min=3, max=150)])
     event_date = DateField("Event date", validators=[DataRequired()])
     location = StringField("Location", validators=[Optional(), Length(max=150)])

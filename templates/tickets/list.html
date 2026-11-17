@@ -4,8 +4,8 @@
 {% set badge = {'open': 'warning', 'in_progress': 'info', 'resolved': 'success'} %}
 <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3 page-heading-row">
     <div>
-        <h1 class="h3 mb-1">{% if session.get('role') == 'admin' %}All tickets{% else %}My tickets{% endif %}</h1>
-        <p class="text-muted mb-0">{% if session.get('role') == 'admin' %}Review reports, update their status, or manage ticket details.{% else %}Track your concerns and update open tickets.{% endif %}</p>
+        <h1 class="h3 mb-1">{% if session.get('role') == 'admin' %}All tickets{% else %}My reports &amp; supported{% endif %}</h1>
+        <p class="text-muted mb-0">{% if session.get('role') == 'admin' %}Review reports, see how many residents are affected, and update ticket status.{% else %}Track your reports and any incidents you have supported.{% endif %}</p>
     </div>
     <a href="{{ url_for('tickets.create_ticket') }}" class="btn btn-cb"><i class="bi bi-plus-lg me-1" aria-hidden="true"></i>Report a concern</a>
 </div>
@@ -32,12 +32,16 @@
             <td>{{ t.id }}</td>
             <td>
                 <strong>{{ t.subject }}</strong>
-                <div class="small text-muted" style="white-space: pre-line;">{{ t.description }}</div>
+                {% if session.get('role') == 'admin' or t.is_owner %}<div class="small text-muted" style="white-space: pre-line;">{{ t.description }}</div>{% endif %}
+                {% if t.incident_location or t.incident_date %}<div class="small text-muted mt-1">{% if t.incident_location %}<i class="bi bi-geo-alt"></i> {{ t.incident_location }}{% endif %}{% if t.incident_date %} · {{ t.incident_date.strftime('%b %d, %Y') }}{% endif %}</div>{% endif %}
+                {% if t.support_count > 1 %}<span class="badge rounded-pill text-bg-warning-subtle text-warning-emphasis mt-2"><i class="bi bi-people me-1" aria-hidden="true"></i>{{ t.support_count }} residents report this incident</span>{% endif %}
+                <div class="ticket-progress mt-2" aria-label="Report progress"><span class="done">Submitted</span><span class="{% if t.status in ['in_progress','resolved'] %}done{% endif %}">In progress</span><span class="{% if t.status == 'resolved' %}done{% endif %}">Resolved</span></div>
+                {% if t.resolution_note %}<div class="ticket-resolution mt-2"><strong>Barangay update:</strong> {{ t.resolution_note }}</div>{% endif %}
             </td>
             <td>{{ t.category }}</td>
             {% if session.get('role') == 'admin' %}<td>{{ t.reporter_name }}</td>{% endif %}
             <td>{{ t.created_at.strftime('%b %d, %Y') }}</td>
-            <td><span class="badge text-bg-{{ badge[t.status] }}">{{ t.status.replace('_', ' ') }}</span></td>
+            <td><span class="badge text-bg-{{ badge[t.status] }}">{{ t.status.replace('_', ' ') }}</span>{% if session.get('role') == 'admin' and t.status == 'open' %}<span class="badge bg-warning-subtle text-warning-emphasis ms-1">Needs triage</span>{% endif %}<div class="small text-muted mt-1">Updated {{ t.updated_at.strftime('%b %d') if t.updated_at else t.created_at.strftime('%b %d') }}</div></td>
             {% if session.get('role') == 'admin' %}
             <td>
                 <form method="POST" action="{{ url_for('tickets.update_ticket_status', ticket_id=t.id) }}" class="d-flex gap-1">
@@ -47,19 +51,23 @@
                         <option value="{{ s }}" {% if s == t.status %}selected{% endif %}>{{ s.replace('_', ' ') }}</option>
                         {% endfor %}
                     </select>
+                    <input type="text" name="resolution_note" class="form-control form-control-sm" maxlength="300" placeholder="Resolution note (required to resolve)" aria-label="Resolution note for ticket {{ t.id }}">
                     <button type="submit" class="btn btn-outline-primary btn-sm">Save</button>
                 </form>
             </td>
             {% endif %}
             <td>
                 <div class="d-flex flex-wrap gap-1">
-                    {% if session.get('role') == 'admin' or t.status == 'open' %}
+                    {% if session.get('role') == 'admin' or (t.is_owner and t.status == 'open') %}
                     <a href="{{ url_for('tickets.edit_ticket', ticket_id=t.id) }}" class="btn btn-outline-primary btn-sm">Edit</a>
                     {% endif %}
+                    {% if session.get('role') != 'admin' and not t.is_owner %}<span class="badge rounded-pill text-bg-success">Supporting</span>{% endif %}
+                    {% if session.get('role') != 'admin' and t.is_owner %}
                     <form method="POST" action="{{ url_for('tickets.delete_ticket', ticket_id=t.id) }}" onsubmit="return confirm('Delete ticket #{{ t.id }} from CommunityBoard? This cannot be undone.');">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <button type="submit" class="btn btn-outline-danger btn-sm">Delete</button>
                     </form>
+                    {% endif %}
                 </div>
             </td>
         </tr>

@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, session, abort
+from flask import Blueprint, render_template, redirect, url_for, flash, session, abort, request
 
 from forms import EventForm
 from content_images import delete_content_image, save_content_image
@@ -12,8 +12,25 @@ events_bp = Blueprint("events", __name__, url_prefix="/events")
 @events_bp.route("/")
 @login_required
 def list_events():
+    query = (request.args.get("q") or "").strip()
+    period = request.args.get("period", "upcoming")
+    category = (request.args.get("category") or "").strip()
+    upcoming, past = Event.get_upcoming(), Event.get_past()
+    if query:
+        needle = query.casefold()
+        match = lambda e: needle in e.title.casefold() or needle in e.description.casefold() or needle in (e.location or "").casefold()
+        upcoming = [e for e in upcoming if match(e)]
+        past = [e for e in past if match(e)]
+    if category:
+        upcoming = [e for e in upcoming if e.category == category]
+        past = [e for e in past if e.category == category]
+    if period == "upcoming":
+        past = []
+    elif period == "past":
+        upcoming = []
     return render_template(
-        "events/list.html", upcoming=Event.get_upcoming(), past=Event.get_past()
+        "events/list.html", upcoming=upcoming, past=past, query=query, period=period,
+        categories=sorted({e.category for e in Event.get_upcoming() + Event.get_past()}), category=category
     )
 
 
@@ -35,6 +52,7 @@ def create_event():
             (form.location.data or "").strip() or None,
             session["user_id"],
             image,
+            form.category.data,
         )
         flash("Event posted.", "success")
         return redirect(url_for("events.list_events"))
@@ -62,6 +80,7 @@ def edit_event(event_id):
             form.event_date.data,
             (form.location.data or "").strip() or None,
             new_image or old_image,
+            form.category.data,
         )
         if new_image:
             delete_content_image("events", old_image)

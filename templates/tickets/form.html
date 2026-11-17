@@ -1,42 +1,67 @@
 {% extends "base.html" %}
 {% block title %}{% if ticket %}Edit ticket #{{ ticket.id }}{% else %}Report a concern{% endif %} - CommunityBoard{% endblock %}
 {% block content %}
-<div class="row justify-content-center">
-<div class="col-lg-8">
-<div class="card shadow-sm"><div class="card-body p-4">
-    <h1 class="h4 mb-1">{% if ticket %}Edit ticket #{{ ticket.id }}{% else %}Report a concern{% endif %}</h1>
-    <p class="text-muted small mb-3">
-        {% if ticket %}Update the category or details. Your changes will be emailed to the municipality when email delivery is available.{% else %}Your ticket will be saved here and sent by email to the municipality of Santa Cruz.{% endif %}
-    </p>
-    <form method="POST" class="needs-validation" novalidate>
-        {{ form.hidden_tag() }}
-
-        <div class="mb-3">
-            {{ form.category.label(class="form-label") }}
-            {{ form.category(class="form-select", required=True) }}
-            <div class="invalid-feedback">Please choose a category.</div>
-            {% for e in form.category.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+<div class="row justify-content-center py-lg-3">
+    <div class="col-lg-9 col-xl-8">
+        <div class="report-heading mb-4">
+            <div class="report-heading-icon"><i class="bi bi-megaphone" aria-hidden="true"></i></div>
+            <div>
+                <p class="eyebrow mb-1">Barangay Duhat · Resident reports</p>
+                <h1 class="h3 mb-1">{% if ticket %}Edit ticket #{{ ticket.id }}{% else %}Report a concern{% endif %}</h1>
+                <p class="text-muted mb-0">{% if ticket %}Update your open concern. The barangay will be emailed about your changes.{% else %}Give the team a clear, concise report. We’ll check for a similar recent report before creating a new ticket.{% endif %}</p>
+            </div>
         </div>
 
-        <div class="mb-3">
-            {{ form.subject.label(class="form-label") }}
-            {{ form.subject(class="form-control", required=True, minlength=5, maxlength=150) }}
-            <div class="invalid-feedback">Subject must be 5 to 150 characters.</div>
-            {% for e in form.subject.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
-        </div>
+        <section class="card report-card shadow-sm">
+            <div class="card-body p-4 p-md-5">
+                <form method="POST" class="needs-validation" novalidate>
+                    {{ form.hidden_tag() }}
 
-        <div class="mb-3">
-            {{ form.description.label(class="form-label") }}
-            {{ form.description(class="form-control", rows=6, required=True, minlength=20, maxlength=2000) }}
-            <div class="invalid-feedback">Please describe the concern (at least 20 characters).</div>
-            {% for e in form.description.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
-        </div>
+                    <div class="mb-4">
+                        {{ form.category.label(class="form-label fw-semibold") }}
+                        {{ form.category(class="form-select form-select-lg", required=True) }}
+                        <div class="invalid-feedback">Choose the category that best matches your concern.</div>
+                        {% for error in form.category.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                    </div>
 
-        <button type="submit" class="btn btn-cb">{% if ticket %}Save changes{% else %}Submit ticket{% endif %}</button>
-        <a href="{{ url_for('tickets.list_tickets') }}" class="btn btn-outline-secondary">Cancel</a>
-    </form>
-</div></div>
-</div>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-7">{{ form.incident_location.label(class="form-label fw-semibold") }}{{ form.incident_location(class="form-control", maxlength=150, placeholder="Example: Purok 2, near the waiting shed") }}<div class="form-text">A nearby landmark helps distinguish this from a similar concern elsewhere.</div>{% for error in form.incident_location.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}</div>
+                        <div class="col-md-5">{{ form.incident_date.label(class="form-label fw-semibold") }}{{ form.incident_date(class="form-control", type="date") }}<div class="form-text">Approximate date is fine.</div>{% for error in form.incident_date.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}</div>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between align-items-center gap-3">
+                            {{ form.subject.label(class="form-label fw-semibold") }}
+                            <span class="character-counter" data-counter-for="subject" data-limit="100">0 / 100</span>
+                        </div>
+                        {{ form.subject(class="form-control form-control-lg", required=True, minlength=8, maxlength=100, placeholder="Example: Fallen tree blocking Purok 2 road") }}
+                        <div class="invalid-feedback">Use a short title between 8 and 100 characters.</div>
+                        {% for error in form.subject.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between align-items-center gap-3">
+                            {{ form.description.label(class="form-label fw-semibold") }}
+                            <span class="character-counter" data-counter-for="description" data-limit="600">0 / 600</span>
+                        </div>
+                        {{ form.description(class="form-control", rows=6, required=True, minlength=30, maxlength=600, placeholder="Include the exact place, when it happened, and what help is needed. Avoid names or private details that are not necessary.") }}
+                        <div class="form-text">30–600 characters. A clear location and time help the barangay recognize reports about the same incident.</div>
+                        <div class="invalid-feedback">Describe the concern in 30 to 600 characters.</div>
+                        {% for error in form.description.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                    </div>
+
+                    <div class="report-email-note mb-4">
+                        <i class="bi bi-envelope-check" aria-hidden="true"></i>
+                        <span>After submission, we’ll email you a confirmation and send a new concern to the barangay.</span>
+                    </div>
+
+                    <div class="d-flex flex-wrap gap-2">
+                        <button type="submit" class="btn btn-cb btn-lg" data-loading="Checking report...">{% if ticket %}Save changes{% else %}Continue{% endif %}</button>
+                        <a href="{{ url_for('tickets.list_tickets') }}" class="btn btn-outline-secondary btn-lg">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </section>
+    </div>
 </div>
 {% endblock %}
-

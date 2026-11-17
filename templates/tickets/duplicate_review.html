@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Check similar reports - CommunityBoard{% endblock %}
+{% block content %}
+<div class="row justify-content-center py-lg-3">
+    <div class="col-lg-9 col-xl-8">
+        <div class="report-heading mb-4">
+            <div class="report-heading-icon warning-icon"><i class="bi bi-intersect" aria-hidden="true"></i></div>
+            <div>
+                <p class="eyebrow mb-1">Before we create another ticket</p>
+                <h1 class="h3 mb-1">Could this be the same incident?</h1>
+                <p class="text-muted mb-0">We found a recent open report in the same category with similar wording. Check it before continuing.</p>
+            </div>
+        </div>
+
+        <div class="submitted-report-card mb-4">
+            <span class="small text-uppercase fw-bold">Your report</span>
+            <h2 class="h5 mt-2 mb-1">{{ pending_report.subject }}</h2>
+            <p class="mb-0 text-muted" style="white-space: pre-line;">{{ pending_report.description }}</p>
+        </div>
+
+        <div class="d-grid gap-3 mb-4">
+            {% for ticket in candidates %}
+            <article class="card possible-duplicate shadow-sm">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
+                        <div>
+                            <span class="badge text-bg-warning-subtle text-warning-emphasis">{{ ticket.category }}</span>
+                            <h2 class="h5 mt-2 mb-1">{{ ticket.subject }}</h2>
+                        </div>
+                        <span class="small text-muted text-nowrap">Ticket #{{ ticket.id }}</span>
+                    </div>
+                    <p class="small text-muted mb-3">Possible match from {{ ticket.created_at.strftime('%b %d, %Y') }}. Report details and reporter information stay private.</p>
+                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                        <span class="small text-muted"><i class="bi bi-people me-1" aria-hidden="true"></i>{{ ticket.support_count }} resident{% if ticket.support_count != 1 %}s{% endif %} connected to this report</span>
+                        <form method="POST" action="{{ url_for('tickets.resolve_duplicate_choice') }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="choice" value="support">
+                            <input type="hidden" name="ticket_id" value="{{ ticket.id }}">
+                            <button type="submit" class="btn btn-cb btn-sm">This is the same incident</button>
+                        </form>
+                    </div>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+
+        <div class="duplicate-actions d-flex flex-wrap gap-2">
+            <form method="POST" action="{{ url_for('tickets.resolve_duplicate_choice') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="choice" value="separate">
+                <button type="submit" class="btn btn-outline-primary">No, submit as a separate concern</button>
+            </form>
+            <a href="{{ url_for('tickets.create_ticket') }}" class="btn btn-outline-secondary">Review or edit my report</a>
+        </div>
+        <p class="form-text mt-3">If it’s the same incident, your report will count as support for the existing ticket instead of adding another row to the barangay’s list.</p>
+    </div>
+</div>
+{% endblock %}

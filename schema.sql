@@ -15,6 +15,10 @@ CREATE TABLE IF NOT EXISTS users (
     status ENUM('active', 'disabled') NOT NULL DEFAULT 'active',
     failed_attempts INT NOT NULL DEFAULT 0,
     locked_until DATETIME NULL,
+    verification_code_hash CHAR(64) NULL,
+    verification_code_expires_at DATETIME NULL,
+    verification_code_sent_at DATETIME NULL,
+    verification_attempts TINYINT UNSIGNED NOT NULL DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -23,6 +27,7 @@ CREATE TABLE IF NOT EXISTS announcements (
     title VARCHAR(150) NOT NULL,
     content TEXT NOT NULL,
     image VARCHAR(255) NULL,
+    category VARCHAR(40) NOT NULL DEFAULT 'General',
     created_by INT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (created_by) REFERENCES users(id)
@@ -35,6 +40,7 @@ CREATE TABLE IF NOT EXISTS events (
     event_date DATE NOT NULL,
     location VARCHAR(150),
     image VARCHAR(255) NULL,
+    category VARCHAR(40) NOT NULL DEFAULT 'Community',
     created_by INT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (created_by) REFERENCES users(id)
@@ -47,6 +53,20 @@ CREATE TABLE IF NOT EXISTS tickets (
     subject VARCHAR(150) NOT NULL,
     description TEXT NOT NULL,
     status ENUM('open', 'in_progress', 'resolved') NOT NULL DEFAULT 'open',
+    incident_location VARCHAR(150) NULL,
+    incident_date DATE NULL,
+    resolution_note TEXT NULL,
+    updated_at DATETIME NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+CREATE TABLE IF NOT EXISTS ticket_endorsements (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    ticket_id INT NOT NULL,
+    user_id INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY unique_ticket_endorsement (ticket_id, user_id),
+    FOREIGN KEY (ticket_id) REFERENCES tickets(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );

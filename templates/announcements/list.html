@@ -1,18 +1,23 @@
 {% extends "base.html" %}
 {% block title %}Announcements - CommunityBoard{% endblock %}
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h1 class="h3 mb-0">Announcements</h1>
+<div class="collection-heading announcements-heading mb-4">
+    <div><p class="eyebrow mb-1">The latest from your barangay</p><h1 class="mb-0">Announcements</h1><p class="text-muted mb-0 mt-2">Important notices and updates for our community.</p></div>
     {% if session.get('role') == 'admin' %}
         <a href="{{ url_for('announcements.create_announcement') }}" class="btn btn-cb">New announcement</a>
     {% endif %}
 </div>
+
+<form method="GET" class="content-search mb-4">
+    <div class="row g-2"><div class="col-sm"><label for="announcementSearch" class="visually-hidden">Search announcements</label><input id="announcementSearch" name="q" value="{{ query }}" class="form-control" placeholder="Search announcements"></div><div class="col-sm-auto"><label for="announcementCategory" class="visually-hidden">Category</label><select id="announcementCategory" name="category" class="form-select"><option value="">All categories</option>{% for item in categories %}<option value="{{ item }}" {% if category == item %}selected{% endif %}>{{ item }}</option>{% endfor %}</select></div><div class="col-sm-auto"><button class="btn btn-cb" type="submit">Find</button></div></div>
+</form>
 
 {% if announcements %}
     {% for a in announcements %}
     <div class="card mb-3 shadow-sm">
         {% if a.image %}<img src="{{ url_for('static', filename='uploads/announcements/' ~ a.image) }}" alt="Photo for {{ a.title }}" class="content-photo">{% endif %}
         <div class="card-body">
+            <span class="badge category-pill mb-2">{{ a.category }}</span>
             <h2 class="h5">{{ a.title }}</h2>
             <p class="text-muted small mb-2">
                 Posted by {{ a.author_name }} on {{ a.created_at.strftime('%B %d, %Y') }}
@@ -32,6 +37,6 @@
     </div>
     {% endfor %}
 {% else %}
-    <div class="card"><div class="card-body text-center text-muted">No announcements yet.</div></div>
+    <div class="card"><div class="card-body text-center text-muted">{% if query %}No announcements matched “{{ query }}”.{% else %}No announcements yet.{% endif %}</div></div>
 {% endif %}
 {% endblock %}

@@ -11,9 +11,10 @@ BASE_SELECT = """
 class Announcement(Post):
     table = "announcements"
 
-    def __init__(self, id, title, content, created_by, created_at=None, author_name=None, image=None):
+    def __init__(self, id, title, content, created_by, created_at=None, author_name=None, image=None, category="General"):
         super().__init__(id, title, created_by, created_at, author_name, image)
         self.content = content
+        self.category = category
 
     @classmethod
     def from_row(cls, row):
@@ -21,7 +22,7 @@ class Announcement(Post):
             return None
         return cls(
             row["id"], row["title"], row["content"], row["created_by"],
-            row["created_at"], row.get("author_name"), row.get("image"),
+            row["created_at"], row.get("author_name"), row.get("image"), row.get("category", "General"),
         )
 
     @classmethod
@@ -56,17 +57,18 @@ class Announcement(Post):
         return cls.from_row(row)
 
     @classmethod
-    def create(cls, title, content, created_by, image=None):
+    def create(cls, title, content, created_by, image=None, category="General"):
         return Database.execute(
-            "INSERT INTO announcements (title, content, created_by, image) VALUES (%s, %s, %s, %s)",
-            (title, content, created_by, image),
+            "INSERT INTO announcements (title, content, created_by, image, category) VALUES (%s, %s, %s, %s, %s)",
+            (title, content, created_by, image, category),
         )
 
-    def update(self, title, content, image=None):
+    def update(self, title, content, image=None, category="General"):
         Database.execute(
-            "UPDATE announcements SET title = %s, content = %s, image = %s WHERE id = %s",
-            (title, content, image, self.id),
+            "UPDATE announcements SET title = %s, content = %s, image = %s, category = %s WHERE id = %s",
+            (title, content, image, category, self.id),
         )
         self.title = title
         self.content = content
         self.image = image
+        self.category = category

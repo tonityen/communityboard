@@ -41,7 +41,7 @@ def start_session(user, remember):
 
 
 def create_account(form, role):
-    """Create the account and email the verification link. Returns True if the account was created."""
+    """Create the account and email its verification code."""
     email = form.email.data.strip().lower()
     if User.find_by_email(email):
         flash("That email is already registered.", "danger")
@@ -51,10 +51,11 @@ def create_account(form, role):
         form.full_name.data, email, form.password.data, role,
         username=form.username.data, contact_number=form.contact_number.data, purok=form.purok.data,
     )
-    if Mailer.send_verification(user):
-        flash("Account created! We sent a verification link to your email. Please verify it before logging in.", "success")
+    code = user.issue_verification_code()
+    if code and Mailer.send_verification(user, code):
+        flash("Account created. Enter the 6-digit code we emailed you to verify your account.", "success")
     else:
-        flash("Account created, but the verification email could not be sent. Use the resend link below the login form.", "warning")
+        flash("Account created, but the code email could not be sent. You can request a new code from the login page.", "warning")
     return True
 
 
@@ -62,7 +63,7 @@ def create_account(form, role):
 def register():
     form = RegisterForm()
     if form.validate_on_submit() and create_account(form, "resident"):
-        return redirect(url_for("auth.login"))
+        return redirect(url_for("verification.verify_code", email=form.email.data.strip().lower()))
     return render_template("register.html", form=form)
 
 
@@ -75,7 +76,7 @@ def admin_register():
         if not secret_code or not hmac.compare_digest(typed_code.encode(), secret_code.encode()):
             flash("Invalid admin access code.", "danger")
         elif create_account(form, "admin"):
-            return redirect(url_for("auth.login"))
+            return redirect(url_for("verification.verify_code", email=form.email.data.strip().lower()))
     return render_template("admin_register.html", form=form)
 
 
@@ -98,10 +99,11 @@ def login():
         elif user.is_disabled():
             flash("This account is disabled. Contact the barangay office.", "danger")
         elif not user.is_verified:
-            flash("Please verify your email before logging in. Check your inbox (and spam).", "warning")
+            flash("Please verify your email with the 6-digit code in your inbox.", "warning")
         else:
             user.clear_failed_logins()
             start_session(user, form.remember.data)
+            session["show_welcome_modal"] = True
             return redirect(url_for("main.dashboard"))
     return render_template("login.html", form=form)
 

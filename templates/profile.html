@@ -1,112 +1,91 @@
 {% extends "base.html" %}
 {% block title %}My profile - CommunityBoard{% endblock %}
 {% block content %}
-<h1 class="h3 mb-3">My profile</h1>
+<header class="profile-banner mb-4">
+    <div><p class="eyebrow mb-1">Your CommunityBoard account</p><h1 class="mb-1">My profile</h1><p class="mb-0">Manage your details, security, and photo.</p></div>
+    <span class="profile-banner-mark" aria-hidden="true"><i class="bi bi-person-vcard"></i></span>
+</header>
 
-<div class="row g-3">
+<div class="row g-4 align-items-start">
+    <aside class="col-lg-4">
+        <section class="card profile-identity shadow-sm mb-4">
+            <div class="profile-cover"></div>
+            <div class="card-body text-center px-4 pb-4">
+                {% if user.photo %}
+                    <img src="{{ url_for('static', filename='uploads/profiles/' ~ user.photo) }}" alt="Profile photo" class="profile-avatar">
+                {% else %}
+                    <div class="profile-avatar profile-avatar-placeholder">{{ user.full_name[0]|upper }}</div>
+                {% endif %}
+                <h2 class="h4 mb-1">{{ user.full_name }}</h2>
+                <p class="text-muted mb-2">{{ user.email }}</p>
+                <span class="profile-role"><i class="bi bi-shield-check me-1" aria-hidden="true"></i>{{ user.role|title }} account</span>
+                {% if user.purok %}<p class="small text-muted mt-3 mb-0"><i class="bi bi-geo-alt me-1"></i>{{ user.purok }}</p>{% endif %}
 
-    <div class="col-lg-4">
-        <div class="card shadow-sm"><div class="card-body text-center p-4">
-            {% if user.photo %}
-                <img src="{{ url_for('static', filename='uploads/profiles/' ~ user.photo) }}" alt="Profile photo"
-                     class="rounded-circle mb-3" width="120" height="120" style="object-fit: cover;">
-            {% else %}
-                <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-3 text-white"
-                     style="width: 120px; height: 120px; font-size: 3rem; background-color: var(--cb-blue);">
-                    {{ user.full_name[0]|upper }}
+                <div class="profile-upload mt-4 text-start">
+                    <h3 class="h6 mb-1">Profile photo</h3>
+                    <p class="small text-muted mb-3">Choose a JPG or PNG, up to 2 MB.</p>
+                    <form method="POST" action="{{ url_for('profile.update_photo') }}" enctype="multipart/form-data" class="needs-validation" novalidate>
+                        {{ photo_form.hidden_tag() }}
+                        {{ photo_form.photo(class="form-control form-control-sm", accept=".jpg,.jpeg,.png", required=True, aria_label="Choose a profile photo") }}
+                        <div class="invalid-feedback">Please choose a JPG or PNG photo.</div>
+                        {% for e in photo_form.photo.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+                        <button type="submit" class="btn btn-cb btn-sm w-100 mt-2"><i class="bi bi-camera me-1"></i>Update photo</button>
+                    </form>
+                    {% if user.photo %}
+                    <form method="POST" action="{{ url_for('profile.remove_photo') }}" class="mt-2" onsubmit="return confirm('Remove your profile photo?');">
+                        {{ photo_form.hidden_tag() }}
+                        <button type="submit" class="btn btn-outline-secondary btn-sm w-100"><i class="bi bi-trash3 me-1"></i>Remove photo</button>
+                    </form>
+                    {% endif %}
                 </div>
-            {% endif %}
-            <h2 class="h5 mb-0">{{ user.full_name }}</h2>
-            <p class="text-muted small mb-3">{{ user.email }} &middot; <span class="badge text-bg-primary">{{ user.role }}</span></p>
-
-            <form method="POST" action="{{ url_for('profile.update_photo') }}" enctype="multipart/form-data" class="needs-validation text-start" novalidate>
-                {{ photo_form.hidden_tag() }}
-                {{ photo_form.photo.label(class="form-label small") }}
-                {{ photo_form.photo(class="form-control form-control-sm", accept=".jpg,.jpeg,.png", required=True) }}
-                <div class="invalid-feedback">Please choose a JPG or PNG photo.</div>
-                {% for e in photo_form.photo.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
-                <button type="submit" class="btn btn-outline-primary btn-sm w-100 mt-2">Upload photo</button>
-            </form>
-        </div></div>
-    </div>
+            </div>
+        </section>
+    </aside>
 
     <div class="col-lg-8">
+        <section class="card profile-section shadow-sm mb-4">
+            <div class="card-body p-4 p-md-5">
+                <div class="profile-section-title"><span class="profile-section-icon"><i class="bi bi-person-lines-fill"></i></span><div><h2 class="h4 mb-1">Personal details</h2><p class="text-muted small mb-0">Keep your contact information up to date.</p></div></div>
+                <form method="POST" action="{{ url_for('profile.update_details') }}" class="needs-validation" novalidate>
+                    {{ details_form.hidden_tag() }}
+                    <div class="row g-3">
+                        <div class="col-12">{{ details_form.full_name.label(class="form-label fw-semibold") }}{{ details_form.full_name(class="form-control", required=True, minlength=2, maxlength=100) }}<div class="invalid-feedback">Please enter your full name (2 to 100 characters).</div>{% for e in details_form.full_name.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}</div>
+                        <div class="col-12">{{ details_form.email.label(class="form-label fw-semibold") }}{{ details_form.email(class="form-control", required=True, maxlength=120) }}<div class="form-text">Changing your email requires verifying the new address and signing in again.</div><div class="invalid-feedback">Please enter a valid email.</div>{% for e in details_form.email.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}</div>
+                    </div>
+                    <button type="submit" class="btn btn-cb mt-4"><i class="bi bi-check2 me-1"></i>Save changes</button>
+                </form>
+            </div>
+        </section>
 
-        <div class="card shadow-sm mb-3"><div class="card-body p-4">
-            <h2 class="h5 mb-3">Account details</h2>
-            <form method="POST" action="{{ url_for('profile.update_details') }}" class="needs-validation" novalidate>
-                {{ details_form.hidden_tag() }}
+        <section class="card profile-section shadow-sm mb-4">
+            <div class="card-body p-4 p-md-5">
+                <div class="profile-section-title"><span class="profile-section-icon security-icon"><i class="bi bi-lock"></i></span><div><h2 class="h4 mb-1">Password &amp; security</h2><p class="text-muted small mb-0">Use a strong password you do not use elsewhere.</p></div></div>
+                <form method="POST" action="{{ url_for('profile.change_password') }}" class="needs-validation" novalidate>
+                    {{ password_form.hidden_tag() }}
+                    <div class="mb-3">{{ password_form.current_password.label(class="form-label fw-semibold") }}{{ password_form.current_password(class="form-control", required=True, autocomplete="current-password") }}<div class="invalid-feedback">Please enter your current password.</div>{% for e in password_form.current_password.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}</div>
+                    <div class="row g-3">
+                        <div class="col-md-6">{{ password_form.password.label(class="form-label fw-semibold") }}{{ password_form.password(class="form-control", required=True, minlength=8, maxlength=64, autocomplete="new-password") }}<div class="form-text">At least 8 characters, including upper and lowercase letters, a number, and a symbol.</div><div class="invalid-feedback">Password must be 8 to 64 characters.</div>{% for e in password_form.password.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}</div>
+                        <div class="col-md-6">{{ password_form.confirm_password.label(class="form-label fw-semibold") }}{{ password_form.confirm_password(class="form-control", required=True, autocomplete="new-password") }}<div class="invalid-feedback">Passwords do not match.</div>{% for e in password_form.confirm_password.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}</div>
+                    </div>
+                    <button type="submit" class="btn btn-outline-primary mt-4">Change password</button>
+                </form>
+            </div>
+        </section>
 
-                <div class="mb-3">
-                    {{ details_form.full_name.label(class="form-label") }}
-                    {{ details_form.full_name(class="form-control", required=True, minlength=2, maxlength=100) }}
-                    <div class="invalid-feedback">Please enter your full name (2 to 100 characters).</div>
-                    {% for e in details_form.full_name.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
-                </div>
-
-                <div class="mb-3">
-                    {{ details_form.email.label(class="form-label") }}
-                    {{ details_form.email(class="form-control", required=True, maxlength=120) }}
-                    <div class="form-text">If you change your email, you will need to verify the new one and log in again.</div>
-                    <div class="invalid-feedback">Please enter a valid email.</div>
-                    {% for e in details_form.email.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
-                </div>
-
-                <button type="submit" class="btn btn-cb">Save details</button>
-            </form>
-        </div></div>
-
-        <div class="card shadow-sm mb-3"><div class="card-body p-4">
-            <h2 class="h5 mb-3">Change password</h2>
-            <form method="POST" action="{{ url_for('profile.change_password') }}" class="needs-validation" novalidate>
-                {{ password_form.hidden_tag() }}
-
-                <div class="mb-3">
-                    {{ password_form.current_password.label(class="form-label") }}
-                    {{ password_form.current_password(class="form-control", required=True) }}
-                    <div class="invalid-feedback">Please enter your current password.</div>
-                    {% for e in password_form.current_password.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
-                </div>
-
-                <div class="mb-3">
-                    {{ password_form.password.label(class="form-label") }}
-                    {{ password_form.password(class="form-control", required=True, minlength=8, maxlength=64) }}
-                    <div class="invalid-feedback">Password must be 8 to 64 characters.</div>
-                    {% for e in password_form.password.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
-                </div>
-
-                <div class="mb-3">
-                    {{ password_form.confirm_password.label(class="form-label") }}
-                    {{ password_form.confirm_password(class="form-control", required=True) }}
-                    <div class="invalid-feedback">Passwords do not match.</div>
-                    {% for e in password_form.confirm_password.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
-                </div>
-
-                <button type="submit" class="btn btn-cb">Change password</button>
-            </form>
-        </div></div>
-
-        <div class="card border-danger shadow-sm"><div class="card-body p-4">
-            <h2 class="h5 text-danger mb-1">Delete my account</h2>
-            <p class="small text-muted mb-3">
-                This cannot be undone.
-                {% if user.role == 'admin' %}Your announcements and events will stay on the board.{% else %}Your tickets will also be deleted.{% endif %}
-            </p>
-            <form method="POST" action="{{ url_for('profile.delete_account') }}" class="needs-validation" novalidate
-                  onsubmit="return confirm('Delete your account for good?');">
-                {{ delete_form.hidden_tag() }}
-
-                <div class="mb-3">
-                    {{ delete_form.account_password.label(class="form-label") }}
-                    {{ delete_form.account_password(class="form-control", required=True) }}
+        <details class="profile-danger">
+            <summary><i class="bi bi-exclamation-triangle me-2"></i>Delete account</summary>
+            <div class="profile-danger-body">
+                <p class="small mb-3">This cannot be undone. {% if user.role == 'admin' %}Your announcements and events will stay on the board.{% else %}Your tickets will also be deleted.{% endif %}</p>
+                <form method="POST" action="{{ url_for('profile.delete_account') }}" class="needs-validation" novalidate onsubmit="return confirm('Delete your account for good?');">
+                    {{ delete_form.hidden_tag() }}
+                    {{ delete_form.account_password.label(class="form-label fw-semibold") }}
+                    {{ delete_form.account_password(class="form-control mb-2", required=True, autocomplete="current-password") }}
                     <div class="invalid-feedback">Please enter your password.</div>
                     {% for e in delete_form.account_password.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
-                </div>
-
-                <button type="submit" class="btn btn-danger">Delete my account</button>
-            </form>
-        </div></div>
-
+                    <button type="submit" class="btn btn-danger btn-sm mt-2">Delete my account</button>
+                </form>
+            </div>
+        </details>
     </div>
 </div>
 {% endblock %}

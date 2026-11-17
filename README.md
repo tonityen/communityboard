@@ -30,9 +30,15 @@ UPDATE users SET role = 'admin' WHERE email = 'your-email@example.com';
 ## Ticket workflow
 
 Residents can submit concerns, edit their own tickets while they are open, and delete their own tickets. Admins can review all tickets, edit or delete them, and update their status. Editing a ticket sends the updated details to the municipality or barangay by email.
-## Mobile access outside your Wi-Fi
+## Email verification and reports
 
-For a temporary defense demo, install cloudflared, start CommunityBoard, then run cloudflared tunnel --url http://127.0.0.1:5000 in a second terminal. Open the generated HTTPS trycloudflare.com address on the phone. Both the app and tunnel must stay running. The temporary address changes when restarted, and anyone with the address can access the app.
+New accounts receive a six-digit email verification code. Codes expire after 10 minutes, and a new code can be requested once per minute. Verification happens on the CommunityBoard page; no tunnel URL is embedded in the verification email.
 
-For verification and password-reset emails, set PUBLIC_BASE_URL in .env to the generated HTTPS address, then restart CommunityBoard before registering or requesting a reset. Use demo data only for a temporary public tunnel.
+Concern reports are limited to an 8–100 character title and a 30–600 character description. When a recent open report in the same category has similar wording, residents can add support to that ticket or submit a separate report. Support counts are shown on the ticket list. New reports still email the configured barangay contact and send a confirmation to the resident.
+
+Reports can include an approximate incident date and location to improve duplicate matching. Admins can move reports through open, in progress, and resolved; a short resolution note is required to mark a report resolved and is emailed to its reporter. Residents can view the status progress and barangay update. Announcements and events have categories, search, and category filters; events can also be filtered by upcoming or past.
+
+## Local network access
+
+Run CommunityBoard on the computer that hosts it. A phone can open the computer's local network address on the same Wi-Fi. Access from a different network requires a deployed public HTTPS host; a localhost address only works on the computer itself. Set `SESSION_COOKIE_SECURE=true` only when the deployed site uses HTTPS.
 

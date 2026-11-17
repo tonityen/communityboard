@@ -112,6 +112,20 @@
         });
     });
 
+    // ---------- live character counts ----------
+
+    document.querySelectorAll('[data-counter-for]').forEach(function (counter) {
+        var input = document.getElementById(counter.getAttribute('data-counter-for'));
+        var limit = Number(counter.getAttribute('data-limit')) || Number(input && input.maxLength) || 0;
+        if (!input || !limit) { return; }
+        var updateCounter = function () {
+            counter.textContent = input.value.length + ' / ' + limit;
+            counter.classList.toggle('near-limit', input.value.length >= limit * 0.9);
+        };
+        input.addEventListener('input', updateCounter);
+        updateCounter();
+    });
+
     // ---------- every form with the needs-validation class ----------
 
     document.querySelectorAll('.needs-validation').forEach(function (form) {
